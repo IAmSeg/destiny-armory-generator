@@ -10,7 +10,7 @@ After you have an API key, create a file called `apiKey.py` that contains the fo
 apiKey = 'YOUR_API_KEY_HERE'
 ```
 
-You'll then need to setup a Firebase database to house your armory. [Go here for Firebase setup.](https://firebase.google.com/docs/web/setup?authuser=0). After that create a file called `firebaseUrl.py`
+You'll then need to setup a Firebase database to house your armory. [Go here for Firebase setup.](https://firebase.google.com/docs/web/setup?authuser=0). After that create a file called `firebaseConfig.py`
 that contains 
 
 ```python

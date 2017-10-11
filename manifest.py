@@ -2,7 +2,7 @@ import requests, zipfile, os
 import json, sqlite3
 import json
 from apiKey import *
-from firebaseUrl import *
+from firebaseConfig import *
 from firebase import firebase
 firebase = firebase.FirebaseApplication(firebaseUrl, None)
 

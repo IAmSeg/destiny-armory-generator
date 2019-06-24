@@ -5,33 +5,26 @@ import sys
 from apiKey import *
 from firebaseConfig import *
 from firebase import firebase
+import importlib
 firebase = firebase.FirebaseApplication(firebaseUrl, None)
-reload(sys)
-sys.setdefaultencoding('utf-8')
+importlib.reload(sys) 
 
 #Reading the Destiny API Manifest in Python. [How I Did It, Anyway]
 
 weapon_types = ['Rocket Launcher', 'Scout Rifle', 'Fusion Rifle', 'Sniper Rifle',
-                'Shotgun', 'Machine Gun', 'Pulse Rifle', 'Auto Rifle', 'Hand Cannon', 'Sidearm']
+                'Shotgun', 'Machine Gun', 'Pulse Rifle', 'Auto Rifle', 'Hand Cannon', 'Sidearm', 'Trace Rifle', 'Grenade Launcher', 'Sword']
 
 #dictionary that tells where to get the hashes for each table
 #FULL DICTIONARY
 hash_dict = {
-             'DestinyClassDefinition': 'classHash',
-             'DestinyGenderDefinition': 'genderHash',
              'DestinyInventoryBucketDefinition': 'bucketHash',
              'DestinyInventoryItemDefinition': 'itemHash',
-             'DestinyProgressionDefinition': 'progressionHash',
-             'DestinyRaceDefinition': 'raceHash',
-             'DestinyHistoricalStatsDefinition': 'statId',
-             'DestinyStatDefinition': 'statHash',
-             'DestinySandboxPerkDefinition': 'perkHash',
-             'DestinyStatGroupDefinition': 'statGroupHash'
              }
 
 # Gets the Destiny manifest from the bungie API
 # Writes the manifest to a .content file
 def get_manifest():
+    print('getting manifest')
     manifest_url = 'http://www.bungie.net/Platform/Destiny2/Manifest/'
     # get the manifest location from the json
     headers = { 'x-api-key': apiKey }
@@ -43,7 +36,7 @@ def get_manifest():
     r = requests.get(mani_url)
     with open("MANZIP", "wb") as zip:
         zip.write(r.content)
-    print "Download Complete!"
+    print("Download Complete!")
 
     #Extract the file contents, and rename the extracted file
     # to 'Manifest.content'
@@ -51,13 +44,13 @@ def get_manifest():
         name = zip.namelist()
         zip.extractall()
     os.rename(name[0], 'Manifest.content')
-    print 'Unzipped!'
+    print('Unzipped!')
 
 # Reads from the .content file created above and writes our items to the firebase armory
 def write_to_armory(hash_dict):
     #connect to the manifest
     con = sqlite3.connect('Manifest.content')
-    print 'Connected'
+    print('Connected')
     #create a cursor object
     cur = con.cursor()
 
@@ -65,7 +58,7 @@ def write_to_armory(hash_dict):
     for table_name in hash_dict.keys():
         #get a list of all the jsons from the table
         cur.execute('SELECT json from '+table_name)
-        print 'Generating '+table_name+' dictionary....'
+        print('Generating '+table_name+' dictionary....')
 
         #this returns a list of tuples: the first item in each tuple is our json
         items = cur.fetchall()
@@ -80,28 +73,28 @@ def write_to_armory(hash_dict):
            # if it contains a itemTypeAndTierDisplayName, extract it
            # the itemTypeAndTierDisplayName is like 'Common Sidearm' or 'Exotic Helmet'
            if ('itemTypeAndTierDisplayName' in item):
-               name = item['itemTypeAndTierDisplayName'].encode('utf-8')
-               tier = name.split(' ', 1)[0].encode('utf-8')
+               name = item['itemTypeAndTierDisplayName']
+               tier = name.split(' ', 1)[0]
 
            # get the name from the display properties
            if ('displayProperties' in item and 'screenshot' in item):
                # build our real display name by putting our extract tier and type in front of the display property name
-               displayname = name + ' ' + item['displayProperties']['name'].encode('utf-8')
-               description = item['displayProperties']['description'].encode('utf-8')
-               link =  'https://bungie.net' + item['screenshot'].encode('utf-8')
+               displayname = name + ' ' + item['displayProperties']['name']
+               description = item['displayProperties']['description']
+               link =  'https://bungie.net' + item['screenshot']
                # build our data object with the display name, description and a link to the image
                data = { 'name': displayname, 'description': description, 'link': link }
                # skip emotes, emblems and subclasses
                if 'Emote' not in name and 'Emblem' not in name and 'Subclass' not in name:
                    try: 
-                       print 'Adding ' + displayname.encode('utf-8')
+                       print('Adding ' + displayname)
                        # stick it in the db
                        firebase.post('armory/' + tier, data=data)
                        file = open('items.txt', 'a')
-                       file.write(displayname.encode('utf-8') + ': ' + link)
+                       file.write(displayname + ': ' + link)
                        file.write('\n')
                    except: 
-                       print 'Exception adding ' + displayname.encode('utf-8')
+                       print('Exception adding ' + displayname)
 
 
 
@@ -118,4 +111,4 @@ except OSError:
 
 get_manifest()
 write_to_armory(hash_dict)
-print 'Done!'
+print('Done!')

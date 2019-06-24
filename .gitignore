@@ -8,3 +8,5 @@ MANZIP
 *.content
 items.txt
 items.json
+*.pyc
+test.py

@@ -1,10 +1,13 @@
 import requests, zipfile, os
 import json, sqlite3
 import json
+import sys
 from apiKey import *
 from firebaseConfig import *
 from firebase import firebase
 firebase = firebase.FirebaseApplication(firebaseUrl, None)
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 #Reading the Destiny API Manifest in Python. [How I Did It, Anyway]
 
@@ -77,22 +80,28 @@ def write_to_armory(hash_dict):
            # if it contains a itemTypeAndTierDisplayName, extract it
            # the itemTypeAndTierDisplayName is like 'Common Sidearm' or 'Exotic Helmet'
            if ('itemTypeAndTierDisplayName' in item):
-               name = item['itemTypeAndTierDisplayName']
-               tier = name.split(' ', 1)[0]
+               name = item['itemTypeAndTierDisplayName'].encode('utf-8')
+               tier = name.split(' ', 1)[0].encode('utf-8')
 
            # get the name from the display properties
            if ('displayProperties' in item and 'screenshot' in item):
                # build our real display name by putting our extract tier and type in front of the display property name
-               displayname = name + ' ' + item['displayProperties']['name']
-               description = item['displayProperties']['description']
-               link =  'https://bungie.net' + item['screenshot']
+               displayname = name + ' ' + item['displayProperties']['name'].encode('utf-8')
+               description = item['displayProperties']['description'].encode('utf-8')
+               link =  'https://bungie.net' + item['screenshot'].encode('utf-8')
                # build our data object with the display name, description and a link to the image
                data = { 'name': displayname, 'description': description, 'link': link }
                # skip emotes, emblems and subclasses
                if 'Emote' not in name and 'Emblem' not in name and 'Subclass' not in name:
-                   print 'Adding ' + displayname
-                   # stick it in the db
-                   firebase.post('armory/' + tier, data=data)
+                   try: 
+                       print 'Adding ' + displayname.encode('utf-8')
+                       # stick it in the db
+                       firebase.post('armory/' + tier, data=data)
+                       file = open('items.txt', 'a')
+                       file.write(displayname.encode('utf-8') + ': ' + link)
+                       file.write('\n')
+                   except: 
+                       print 'Exception adding ' + displayname.encode('utf-8')
 
 
 

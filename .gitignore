@@ -5,3 +5,6 @@ firebaseConfig.pyc
 Manifest.content
 manifest.pyc
 MANZIP
+*.content
+items.txt
+items.json
